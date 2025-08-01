@@ -1,0 +1,1269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.7.3/web3.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@solana/web3.js@1.87.6/lib/index.iife.min.js"></script>
+ 
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JobsPlus - Professional Job Network</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.7.3/web3.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
+        * { font-family: 'Montserrat', sans-serif; }
+        .pastel-yellow-bg { background-color: #FFD700; }
+        .pastel-yellow-text { color: #FFB90F; }
+        .jobplus-card-shadow { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .card-hover { transition: all 0.2s ease; cursor: pointer; }
+        .card-hover:hover { box-shadow: 0 6px 20px rgba(0,0,0,0.12); transform: translateY(-4px); }
+        .nav-item { position: relative; padding: 0.5rem 1rem; transition: all 0.2s ease; }
+        .nav-item::after { content: ''; position: absolute; bottom: -2px; left: 50%; transform: translateX(-50%); width: 0; height: 3px; background-color: #FFD700; transition: width 0.3s ease-in-out; }
+        .nav-item.active::after { width: 100%; }
+        .btn-primary { background-color: #2D3748; color: white; font-weight: 600; border-radius: 9999px; padding: 0.75rem 1.5rem; transition: all 0.2s ease; border: none; cursor: pointer; }
+        .btn-primary:hover { background-color: #4A5568; }
+        .btn-primary:disabled { background-color: #A0AEC0; cursor: not-allowed; }
+        .btn-secondary { background-color: #fff; color: #2D3748; font-weight: 600; border-radius: 9999px; padding: 0.75rem 1.5rem; border: 2px solid #E2E8F0; transition: all 0.2s ease; cursor: pointer; }
+        .btn-secondary:hover { border-color: #CBD5E0; }
+        .btn-premium { background: linear-gradient(45deg, #FFD700, #FFA500); color: #2D3748; font-weight: 600; border-radius: 9999px; padding: 0.75rem 1.5rem; border: none; cursor: pointer; transition: all 0.2s ease; }
+        .btn-premium:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3); }
+        .animate-slide-up { animation: slideUp 0.5s ease-out; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); display: none; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-container { background-color: white; padding: 2.5rem; border-radius: 12px; width: 90%; max-width: 500px; position: relative; animation: slideDown 0.3s ease-out; max-height: 90vh; overflow-y: auto; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-50px); } to { opacity: 1; transform: translateY(0); } }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f0f0f0; }
+        ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #999; }
+        .web3-connected { background-color: #4CAF50 !important; color: white !important; }
+        .premium-badge { background-color: #FFD700; color: #2D3748; font-weight: bold; }
+        .error-message { color: #DC2626; font-size: 0.875rem; margin-top: 0.25rem; }
+        .success-message { color: #059669; font-size: 0.875rem; margin-top: 0.25rem; }
+        .loading { opacity: 0.6; pointer-events: none; }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <nav class="bg-white border-b border-gray-200 sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center space-x-6">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-10 h-10 pastel-yellow-bg rounded-full flex items-center justify-center">
+                            <span class="text-white font-bold text-2xl">JP</span>
+                        </div>
+                        <span class="text-xl font-bold text-gray-800">JobsPlus</span>
+                    </div>
+                    <div class="hidden md:flex relative">
+                        <div class="bg-gray-100 flex items-center px-4 py-2 w-80 rounded-full">
+                            <i class="fas fa-search text-gray-400 mr-3"></i>
+                            <input type="text" placeholder="Search jobs, profiles, or skills..." class="bg-transparent outline-none flex-1 text-sm" id="main-search">
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-8">
+                    <div class="hidden md:flex items-center space-x-6">
+                        <a href="#" onclick="showSection('jobs')" class="nav-item active flex flex-col items-center text-gray-600 hover:text-gray-800">
+                            <i class="fas fa-briefcase text-xl"></i>
+                            <span class="text-xs mt-1 font-medium">Jobs</span>
+                        </a>
+                        <a href="#" onclick="showSection('network')" class="nav-item flex flex-col items-center text-gray-600 hover:text-gray-800">
+                            <i class="fas fa-users text-xl"></i>
+                            <span class="text-xs mt-1 font-medium">Network</span>
+                        </a>
+                        <a href="#" onclick="showSection('messages')" class="nav-item flex flex-col items-center text-gray-600 hover:text-gray-800 relative">
+                            <i class="fas fa-comment-dots text-xl"></i>
+                            <span class="text-xs mt-1 font-medium">Messages</span>
+                            <div class="absolute top-0 right-0 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold">3</div>
+                        </a>
+                        <a href="#" onclick="showSection('notifications')" class="nav-item flex flex-col items-center text-gray-600 hover:text-gray-800 relative">
+                            <i class="fas fa-bell text-xl"></i>
+                            <span class="text-xs mt-1 font-medium">Notifications</span>
+                            <div class="absolute top-0 right-0 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold">5</div>
+                        </a>
+                    </div>
+                    <div id="auth-buttons" class="flex items-center space-x-3">
+                        <button onclick="showAuthModal('login')" class="btn-primary text-sm font-medium">Sign In</button>
+                        <button id="connect-wallet-btn" class="btn-secondary text-sm font-medium">Connect Wallet</button>
+                    </div>
+                     <div id="user-profile-nav" class="hidden flex items-center space-x-3 cursor-pointer">
+                          <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face&auto=format" class="w-10 h-10 rounded-full border-2 border-gray-200" alt="Profile">
+                          <div class="hidden md:block">
+                              <div class="text-sm font-semibold" id="nav-user-name">User</div>
+                              <button onclick="logout()" class="text-xs text-red-500 hover:underline">Sign Out</button>
+                          </div>
+                     </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <div class="grid grid-cols-12 gap-8">
+            <div class="col-span-12 lg:col-span-3">
+                <div class="jobplus-card-shadow bg-white rounded-xl overflow-hidden mb-6 card-hover">
+                    <div class="h-24 bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1510915228340-a3594cd27393?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwzNTc5fDB8MXxzZWFyY2h8MTB8fGZ1bGwlMjBzdGFjayUyMGRldmVsb3BlcnxlfDB8fHx8MTY3MjAwMTIwNQ&ixlib=rb-4.0.3&q=80&w=1080')"></div>
+                    <div class="px-6 pb-6 pt-10 relative">
+                        <div class="relative -mt-16 mb-4 flex justify-center">
+                            <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop&crop=face&auto=format" class="w-20 h-20 rounded-full border-4 border-white" alt="Profile">
+                        </div>
+                        <div class="text-center">
+                            <h3 class="font-bold text-xl text-gray-900 mb-1" id="profile-card-name">Welcome to JobsPlus</h3>
+                            <p class="text-sm text-gray-600 mb-2" id="profile-card-bio">Sign in to get personalized job recommendations</p>
+                            <p class="text-xs text-gray-500" id="profile-wallet-address"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="jobplus-card-shadow bg-white rounded-xl p-6 mb-6">
+                    <h4 class="font-bold text-lg mb-4">Filters</h4>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Location</label>
+                            <input type="text" id="filter-location" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="Enter location">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Job Type</label>
+                            <select id="filter-type" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                                <option value="">All Types</option>
+                                <option value="full-time">Full-time</option>
+                                <option value="part-time">Part-time</option>
+                                <option value="contract">Contract</option>
+                                <option value="freelance">Freelance</option>
+                            </select>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <input type="checkbox" id="filter-remote" class="mr-2">
+                                <span class="text-sm">Remote Only</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" id="filter-web3" class="mr-2">
+                                <span class="text-sm">Web3 Jobs</span>
+                            </label>
+                        </div>
+                        <button onclick="applyFilters()" class="w-full btn-primary text-sm">Apply Filters</button>
+                        <button onclick="clearFilters()" class="w-full btn-secondary text-sm">Clear All</button>
+                    </div>
+                </div>
+
+                <div class="jobplus-card-shadow bg-white rounded-xl p-6 mb-6">
+                    <h4 class="font-bold text-lg mb-4">Trending Skills</h4>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-700">React.js</span>
+                            <span class="text-xs text-green-500 font-semibold">+15%</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-700">Web3</span>
+                            <span class="text-xs text-yellow-500 font-semibold">+42%</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-700">AI/ML</span>
+                            <span class="text-xs text-yellow-500 font-semibold">+28%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pastel-yellow-bg rounded-xl p-6 text-center jobplus-card-shadow">
+                    <i class="fas fa-cube text-4xl mb-4 opacity-70 text-white"></i>
+                    <h4 class="font-bold text-xl mb-2">Explore Web3 Jobs</h4>
+                    <p class="text-sm mb-4 text-gray-800">Discover exclusive Web3, blockchain, and AI opportunities.</p>
+                    <button onclick="filterWeb3Jobs()" class="btn-primary">Find Web3 Jobs</button>
+                </div>
+            </div>
+
+            <div class="col-span-12 lg:col-span-6">
+                <div id="jobs-section">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-3xl font-bold text-gray-800">Jobs for you</h2>
+                        <div class="flex space-x-4">
+                            <button class="btn-secondary text-sm" onclick="toggleFilters()">
+                                <i class="fas fa-filter mr-2"></i>Filters
+                            </button>
+                            <button id="find-matches-btn" onclick="findMyMatches()" class="btn-secondary text-sm" disabled>
+                                <i class="fas fa-magic mr-2"></i>Find My Matches
+                            </button>
+                            <button id="post-job-btn" onclick="showSection('post-job')" class="btn-primary text-sm" disabled>
+                                <i class="fas fa-plus mr-2"></i>Post Job
+                            </button>
+                        </div>
+                    </div>
+                    <div class="space-y-6" id="jobs-list">
+                        <div class="text-center py-12">
+                            <i class="fas fa-spinner fa-spin text-4xl text-gray-400 mb-4"></i>
+                            <p class="text-gray-500">Loading jobs...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="post-job-section" class="hidden">
+                    <div class="jobplus-card-shadow bg-white rounded-xl p-8">
+                        <h2 class="text-3xl font-bold text-gray-800 mb-6">Post a New Job</h2>
+                        <form id="job-form" class="space-y-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="md:col-span-2">
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Job Title *</label>
+                                    <input type="text" id="job-title" name="title" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all" placeholder="e.g. Senior React Developer">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Company *</label>
+                                    <input type="text" id="job-company" name="company" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all" placeholder="Your company">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Location *</label>
+                                    <input type="text" id="job-location" name="location" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all" placeholder="e.g. San Francisco, CA">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Job Type *</label>
+                                    <select id="job-type" name="type" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all">
+                                        <option value="">Select job type</option>
+                                        <option value="full-time">Full-time</option>
+                                        <option value="part-time">Part-time</option>
+                                        <option value="contract">Contract</option>
+                                        <option value="freelance">Freelance</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Skills (comma separated)</label>
+                                    <input type="text" id="job-skills" name="skills" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all" placeholder="e.g. React, Node.js, Web3">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Salary Range (in thousands)</label>
+                                    <div class="flex space-x-2">
+                                        <input type="number" id="job-salary-min" name="salary-min" class="w-1/2 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all" placeholder="Min (e.g. 80)">
+                                        <input type="number" id="job-salary-max" name="salary-max" class="w-1/2 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all" placeholder="Max (e.g. 120)">
+                                    </div>
+                                </div>
+                                <div class="md:col-span-2 flex items-center space-x-6">
+                                    <label class="flex items-center space-x-2 text-sm font-semibold text-gray-700">
+                                        <input type="checkbox" id="isRemote" name="isRemote" class="rounded text-yellow-500 focus:ring-yellow-400">
+                                        <span>Remote Job</span>
+                                    </label>
+                                    <label class="flex items-center space-x-2 text-sm font-semibold text-gray-700">
+                                        <input type="checkbox" id="isWeb3" name="isWeb3" class="rounded text-yellow-500 focus:ring-yellow-400">
+                                        <span>Web3 Job</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Job Description *</label>
+                                <textarea id="job-description" name="description" rows="6" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all" placeholder="Describe the role, requirements, and what makes this opportunity special..."></textarea>
+                            </div>
+                            <div class="flex justify-end space-x-4">
+                                <button type="button" onclick="showSection('jobs')" class="btn-secondary text-sm">Cancel</button>
+                                <button type="submit" class="btn-primary text-sm">Post Standard Job</button>
+                                <button type="button" onclick="postPremiumJob()" class="btn-premium text-sm">
+                                    <i class="fas fa-crown mr-2"></i>Post Premium Job
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div id="profile-section" class="hidden">
+                    <div class="jobplus-card-shadow bg-white rounded-xl p-8">
+                        <h2 class="text-3xl font-bold text-gray-800 mb-6">Edit Profile</h2>
+                        <form id="profile-form" class="space-y-6">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Bio</label>
+                                <textarea id="profile-bio" rows="4" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all" placeholder="Tell us about yourself..."></textarea>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Skills (comma separated)</label>
+                                <input type="text" id="profile-skills" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all" placeholder="e.g. JavaScript, React, Node.js">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Location</label>
+                                <input type="text" id="profile-location" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all" placeholder="Your location">
+                            </div>
+                            <div class="flex justify-end space-x-4">
+                                <button type="button" onclick="showSection('jobs')" class="btn-secondary text-sm">Cancel</button>
+                                <button type="button" onclick="extractSkillsFromBio()" class="btn-secondary text-sm">
+                                <i class="fas fa-magic mr-2"></i>Extract Skills   
+                                </button>
+                                <button type="submit" class="btn-primary text-sm">Save Profile</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-span-12 lg:col-span-3">
+                <div class="jobplus-card-shadow bg-white rounded-xl p-6 mb-6">
+                    <h4 class="font-bold text-lg mb-4">Quick Actions</h4>
+                    <div class="space-y-3">
+                        <button onclick="showSection('profile')" class="w-full btn-secondary text-sm" id="edit-profile-btn" disabled>
+                            <i class="fas fa-user-edit mr-2"></i>Edit Profile
+                        </button>
+                        <button onclick="loadJobs()" class="w-full btn-secondary text-sm">
+                            <i class="fas fa-refresh mr-2"></i>Refresh Jobs
+                        </button>
+                        <button class="w-full btn-primary text-sm">
+                            <i class="fas fa-bell mr-2"></i>Create Job Alert
+                        </button>
+                    </div>
+                </div>
+
+                <div class="jobplus-card-shadow bg-white rounded-xl p-6 mb-6">
+                    <h4 class="font-bold text-lg mb-4">Trending News</h4>
+                    <ul class="space-y-4">
+                        <li class="flex items-start space-x-3">
+                            <div class="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center text-sm font-bold text-gray-500">1</div>
+                            <div>
+                                <p class="font-medium text-gray-800">The Rise of Remote Work</p>
+                                <p class="text-xs text-gray-500">2 days ago • 1,500 readers</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start space-x-3">
+                            <div class="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center text-sm font-bold text-gray-500">2</div>
+                            <div>
+                                <p class="font-medium text-gray-800">AI Reshaping Recruitment</p>
+                                <p class="text-xs text-gray-500">4 days ago • 950 readers</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="pastel-yellow-bg rounded-xl p-6 text-center jobplus-card-shadow">
+                    <i class="fas fa-cube text-4xl mb-4 opacity-70 text-white"></i>
+                    <h4 class="font-bold text-xl mb-2">Explore Web3 Jobs</h4>
+                    <p class="text-sm mb-4 text-gray-800">Discover exclusive Web3, blockchain, and AI opportunities.</p>
+                    <button onclick="filterWeb3Jobs()" class="btn-primary">Find Web3 Jobs</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="post-job-float-btn" class="fixed bottom-6 right-6 z-50 hidden">
+        <button onclick="showSection('post-job')" class="w-16 h-16 pastel-yellow-bg text-white rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-105">
+            <i class="fas fa-plus text-2xl"></i>
+        </button>
+    </div>
+
+    <div id="auth-modal" class="modal-overlay">
+        <div class="modal-container">
+            <button onclick="hideAuthModal()" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+            <div id="login-modal-content">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Sign In to JobsPlus</h2>
+                <form id="login-form" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Email</label>
+                        <input type="email" id="login-email" name="email" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-400" placeholder="your.email@example.com">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Password</label>
+                        <input type="password" id="login-password" name="password" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-400" placeholder="••••••••">
+                    </div>
+                    <div id="login-error" class="error-message hidden"></div>
+                    <button type="submit" class="w-full btn-primary">Sign In</button>
+                </form>
+                <div class="text-center mt-4">
+                    <p class="text-sm text-gray-600">Don't have an account? <button onclick="showAuthModal('register')" class="text-yellow-600 hover:underline">Sign up</button></p>
+                </div>
+            </div>
+            <div id="register-modal-content" class="hidden">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Join JobsPlus</h2>
+                <form id="register-form" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Full Name</label>
+                        <input type="text" id="register-name" name="name" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-400" placeholder="Your full name">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Email</label>
+                        <input type="email" id="register-email" name="email" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-400" placeholder="your.email@example.com">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Password</label>
+                        <input type="password" id="register-password" name="password" required minlength="6" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-400" placeholder="At least 6 characters">
+                    </div>
+                    <div id="register-error" class="error-message hidden"></div>
+                    <button type="submit" class="w-full btn-primary">Sign Up</button>
+                </form>
+                <div class="text-center mt-4">
+                    <p class="text-sm text-gray-600">Already have an account? <button onclick="showAuthModal('login')" class="text-yellow-600 hover:underline">Sign in</button></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+
+        // AI-powered skill extraction from bio
+function extractSkillsFromBio() {
+    const bioText = document.getElementById('profile-bio').value;
+    const skillsInput = document.getElementById('profile-skills');
+
+    // A predefined list of keywords (can be expanded)
+    const keywords = [
+        'JavaScript', 'Python', 'React', 'Node.js', 'Solidity', 'Web3',
+        'Express.js', 'MongoDB', 'PostgreSQL', 'TypeScript', 'AWS',
+        'Docker', 'Kubernetes', 'AI', 'Machine Learning', 'DeFi', 'Blockchain'
+    ];
+
+    let extractedSkills = new Set();
+    const currentSkills = skillsInput.value.split(',').map(s => s.trim()).filter(s => s);
+    currentSkills.forEach(skill => extractedSkills.add(skill));
+
+    keywords.forEach(keyword => {
+        // Use a case-insensitive regex to find the keyword
+        const regex = new RegExp(`\\b${keyword}\\b`, 'i');
+        if (regex.test(bioText)) {
+            extractedSkills.add(keyword);
+        }
+    });
+
+    skillsInput.value = Array.from(extractedSkills).join(', ');
+    showNotification('Skills extracted from your bio!', 'info');
+}
+
+        const API_BASE = window.location.origin + '/api';
+        let currentFilters = {};
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeApp();
+        });
+
+        function initializeApp() {
+            checkAuthStatus();
+            loadJobs();
+            setupEventListeners();
+            showSection('jobs');
+            initializeWeb3();
+        }
+
+        function setupEventListeners() {
+            // Search functionality
+            const mainSearch = document.getElementById('main-search');
+            if (mainSearch) {
+                mainSearch.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        loadJobs(e.target.value);
+                    }
+                });
+            }
+
+            // Navigation items
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    navItems.forEach(nav => nav.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+            
+            // Forms
+            const loginForm = document.getElementById('login-form');
+            const registerForm = document.getElementById('register-form');
+            const jobForm = document.getElementById('job-form');
+            const profileForm = document.getElementById('profile-form');
+
+            if (loginForm) loginForm.addEventListener('submit', login);
+            if (registerForm) registerForm.addEventListener('submit', register);
+            if (jobForm) jobForm.addEventListener('submit', postStandardJob);
+            if (profileForm) profileForm.addEventListener('submit', updateProfile);
+
+            // Close modal when clicking outside
+            const authModal = document.getElementById('auth-modal');
+            if (authModal) {
+                authModal.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        hideAuthModal();
+                    }
+                });
+            }
+        }
+
+        function checkAuthStatus() {
+            const token = localStorage.getItem('token');
+            const postJobBtn = document.getElementById('post-job-btn');
+            const postJobFloatBtn = document.getElementById('post-job-float-btn');
+            const findMatchesBtn = document.getElementById('find-matches-btn');
+            const editProfileBtn = document.getElementById('edit-profile-btn');
+            const authButtons = document.getElementById('auth-buttons');
+            const userProfileNav = document.getElementById('user-profile-nav');
+
+            if (token) {
+                authButtons.classList.add('hidden');
+                userProfileNav.classList.remove('hidden');
+                postJobBtn.disabled = false;
+                postJobFloatBtn.classList.remove('hidden');
+                findMatchesBtn.disabled = false;
+                editProfileBtn.disabled = false;
+                fetchUserProfile();
+            } else {
+                authButtons.classList.remove('hidden');
+                userProfileNav.classList.add('hidden');
+                postJobBtn.disabled = true;
+                postJobFloatBtn.classList.add('hidden');
+                findMatchesBtn.disabled = true;
+                editProfileBtn.disabled = true;
+                
+                // Reset profile card for non-authenticated users
+                document.getElementById('profile-card-name').textContent = 'Welcome to JobsPlus';
+                document.getElementById('profile-card-bio').textContent = 'Sign in to get personalized job recommendations';
+                document.getElementById('profile-wallet-address').textContent = '';
+            }
+        }
+
+        async function fetchUserProfile() {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/profile`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                const data = await response.json();
+                if (data.success && data.user) {
+                    updateUIWithUserData(data.user);
+                } else {
+                    throw new Error('Failed to fetch profile');
+                }
+            } catch (error) {
+                console.error('Error fetching user profile:', error);
+                showNotification('Failed to load profile. Please try signing in again.', 'error');
+                localStorage.removeItem('token');
+                checkAuthStatus();
+            }
+        }
+
+        function updateUIWithUserData(user) {
+            document.getElementById('nav-user-name').textContent = user.name;
+            document.getElementById('profile-card-name').textContent = user.name;
+            
+            const bio = user.profile?.bio || 'No bio available';
+            document.getElementById('profile-card-bio').textContent = bio;
+            
+            const walletAddressSpan = document.getElementById('profile-wallet-address');
+            if (walletAddressSpan && user.profile?.publicWalletAddress) {
+                const address = user.profile.publicWalletAddress;
+                walletAddressSpan.textContent = `Wallet: ${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
+            } else if (walletAddressSpan) {
+                 walletAddressSpan.textContent = 'Wallet: Not Connected';
+            }
+
+            // Populate profile form
+            const profileBio = document.getElementById('profile-bio');
+            const profileSkills = document.getElementById('profile-skills');
+            const profileLocation = document.getElementById('profile-location');
+            
+            if (profileBio) profileBio.value = user.profile?.bio || '';
+            if (profileSkills) profileSkills.value = user.profile?.skills?.join(', ') || '';
+            if (profileLocation) profileLocation.value = user.profile?.location || '';
+        }
+
+        function showAuthModal(type) {
+            const modal = document.getElementById('auth-modal');
+            const loginContent = document.getElementById('login-modal-content');
+            const registerContent = document.getElementById('register-modal-content');
+            
+            modal.style.display = 'flex';
+            
+            if (type === 'login') {
+                loginContent.classList.remove('hidden');
+                registerContent.classList.add('hidden');
+            } else {
+                loginContent.classList.add('hidden');
+                registerContent.classList.remove('hidden');
+            }
+            
+            // Clear any previous errors
+            hideError('login-error');
+            hideError('register-error');
+        }
+
+        function hideAuthModal() {
+            document.getElementById('auth-modal').style.display = 'none';
+        }
+
+        async function register(e) {
+            e.preventDefault();
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            
+            try {
+                submitBtn.textContent = 'Signing up...';
+                submitBtn.disabled = true;
+                
+                const name = document.getElementById('register-name').value.trim();
+                const email = document.getElementById('register-email').value.trim();
+                const password = document.getElementById('register-password').value;
+
+                const response = await fetch(`${API_BASE}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification('Registration successful! Please sign in.', 'success');
+                    showAuthModal('login');
+                    // Pre-fill login form with registered email
+                    document.getElementById('login-email').value = email;
+                } else {
+                    showError('register-error', data.message);
+                }
+            } catch (error) {
+                console.error('Registration error:', error);
+                showError('register-error', 'Network error. Please try again.');
+            } finally {
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            }
+        }
+
+        async function login(e) {
+            e.preventDefault();
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            
+            try {
+                submitBtn.textContent = 'Signing in...';
+                submitBtn.disabled = true;
+                
+                const email = document.getElementById('login-email').value.trim();
+                const password = document.getElementById('login-password').value;
+
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    localStorage.setItem('token', data.token);
+                    showNotification('Welcome back!', 'success');
+                    hideAuthModal();
+                    checkAuthStatus();
+                    loadJobs();
+                } else {
+                    showError('login-error', data.message);
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                showError('login-error', 'Network error. Please try again.');
+            } finally {
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            showNotification('You have been signed out.', 'success');
+            checkAuthStatus();
+            loadJobs();
+            showSection('jobs');
+        }
+
+        async function updateProfile(e) {
+            e.preventDefault();
+            const token = localStorage.getItem('token');
+            if (!token) {
+                showNotification('Please sign in first.', 'error');
+                return;
+            }
+
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            
+            try {
+                submitBtn.textContent = 'Saving...';
+                submitBtn.disabled = true;
+
+                const bio = document.getElementById('profile-bio').value.trim();
+                const skillsInput = document.getElementById('profile-skills').value.trim();
+                const location = document.getElementById('profile-location').value.trim();
+                
+                const skills = skillsInput ? skillsInput.split(',').map(s => s.trim()).filter(s => s) : [];
+
+                const response = await fetch(`${API_BASE}/profile`, {
+                    method: 'PUT',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ bio, skills, location })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    showNotification('Profile updated successfully!', 'success');
+                    updateUIWithUserData(data.user);
+                    showSection('jobs');
+                } else {
+                    showNotification('Failed to update profile: ' + data.message, 'error');
+                }
+            } catch (error) {
+                console.error('Profile update error:', error);
+                showNotification('Network error. Please try again.', 'error');
+            } finally {
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            }
+        }
+
+        function showSection(sectionName) {
+            const sections = ['jobs', 'post-job', 'profile', 'network', 'messages', 'notifications'];
+            sections.forEach(section => {
+                const element = document.getElementById(section + '-section');
+                if (element) element.classList.add('hidden');
+            });
+            
+            const targetSection = document.getElementById(sectionName + '-section');
+            if (targetSection) {
+                targetSection.classList.remove('hidden');
+                targetSection.classList.add('animate-slide-up');
+            }
+        }
+
+        async function loadJobs(searchQuery = '') {
+            const jobsList = document.getElementById('jobs-list');
+            if (!jobsList) return;
+
+            // Show loading state
+            jobsList.innerHTML = `
+                <div class="text-center py-12">
+                    <i class="fas fa-spinner fa-spin text-4xl text-gray-400 mb-4"></i>
+                    <p class="text-gray-500">Loading jobs...</p>
+                </div>
+            `;
+
+            try {
+                let url = `${API_BASE}/jobs`;
+                const params = new URLSearchParams();
+                
+                if (searchQuery) params.append('search', searchQuery);
+                if (currentFilters.location) params.append('location', currentFilters.location);
+                if (currentFilters.type) params.append('type', currentFilters.type);
+                if (currentFilters.isRemote) params.append('isRemote', 'true');
+                if (currentFilters.isWeb3) params.append('isWeb3', 'true');
+                
+                const queryString = params.toString();
+                if (queryString) url += '?' + queryString;
+
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayJobs(data.jobs);
+                } else {
+                    throw new Error(data.message || 'Failed to load jobs');
+                }
+            } catch (error) {
+                console.error('Error loading jobs:', error);
+                jobsList.innerHTML = `
+                    <div class="text-center py-12">
+                        <i class="fas fa-exclamation-triangle text-4xl text-red-400 mb-4"></i>
+                        <p class="text-gray-500">Failed to load jobs. Please try again.</p>
+                        <button onclick="loadJobs()" class="btn-primary mt-4">Retry</button>
+                    </div>
+                `;
+            }
+        }
+
+        async function findMyMatches() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                showNotification('Please sign in to find your job matches.', 'error');
+                showAuthModal('login');
+                return;
+            }
+
+            const jobsList = document.getElementById('jobs-list');
+            jobsList.innerHTML = `
+                <div class="text-center py-12">
+                    <i class="fas fa-magic fa-spin text-4xl text-yellow-500 mb-4"></i>
+                    <p class="text-gray-500">Finding your perfect matches...</p>
+                </div>
+            `;
+
+            try {
+                const response = await fetch(`${API_BASE}/jobs/match`, { 
+                    headers: { 'Authorization': `Bearer ${token}` } 
+                });
+                const data = await response.json();
+                
+                if (data.success && data.jobs.length > 0) {
+                    showNotification(`Found ${data.jobs.length} jobs that match your skills!`, 'success');
+                    displayJobs(data.jobs);
+                } else {
+                    showNotification('No matching jobs found. Try updating your profile skills!', 'error');
+                    displayJobs([]);
+                }
+            } catch (error) {
+                console.error('Error fetching matched jobs:', error);
+                showNotification('Failed to fetch job matches. Please try again.', 'error');
+                loadJobs(); // Fallback to regular job loading
+            }
+        }
+
+        function displayJobs(jobsList) {
+            const container = document.getElementById('jobs-list');
+            if (!container) return;
+
+            if (jobsList.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12">
+                        <i class="fas fa-search text-4xl text-gray-400 mb-4"></i>
+                        <h3 class="text-xl font-semibold text-gray-600 mb-2">No jobs found</h3>
+                        <p class="text-gray-500 mb-4">Try adjusting your search criteria or filters</p>
+                        <button onclick="clearFilters(); loadJobs();" class="btn-primary">Show All Jobs</button>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = jobsList.map(job => `
+                <div class="jobplus-card-shadow bg-white rounded-xl p-6 card-hover animate-slide-up">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="flex space-x-4">
+                            <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-lg border border-gray-200">
+                                ${job.company.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900 mb-1">${escapeHtml(job.title)}</h3>
+                                <p class="text-gray-600 font-medium">${escapeHtml(job.company)}</p>
+                                <p class="text-sm text-gray-500 flex items-center">
+                                    <i class="fas fa-map-marker-alt mr-1"></i>
+                                    ${escapeHtml(job.location)} • ${job.type}
+                                    ${job.isRemote ? ' • <span class="text-green-600 font-medium">Remote</span>' : ''}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            ${job.isPremium ? `<span class="premium-badge px-3 py-1 rounded-full text-xs flex items-center"><i class="fas fa-crown mr-1"></i>Premium</span>` : ''}
+                            ${job.isWeb3 ? `<span class="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs font-medium">Web3</span>` : ''}
+                            ${job.matchScore !== undefined ? `<div class="bg-green-100 text-green-700 font-bold px-3 py-1 rounded-full text-xs">Match: ${(job.matchScore * 100).toFixed(0)}%</div>` : ''}
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap gap-2 mb-4">
+                        ${job.skills ? job.skills.slice(0, 6).map(skill => `<span class="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm">${escapeHtml(skill)}</span>`).join('') : ''}
+                        ${job.skills && job.skills.length > 6 ? `<span class="bg-gray-100 text-gray-500 px-3 py-1 rounded-full text-sm">+${job.skills.length - 6} more</span>` : ''}
+                    </div>
+                    <p class="text-gray-700 mb-4 line-clamp-3">${escapeHtml(job.description)}</p>
+                    <div class="flex items-center justify-between pt-4 border-t border-gray-100">
+                        <div class="text-sm text-gray-600">
+                            ${job.salary && job.salary.min > 0 ? 
+                                `<span class="font-semibold text-yellow-600">${formatSalary(job.salary.min)} - ${formatSalary(job.salary.max)}</span>` : 
+                                '<span class="text-gray-500">Salary not specified</span>'
+                            }
+                        </div>
+                        <button class="btn-primary text-sm" onclick="applyToJob('${job.id}')">
+                            Apply Now
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function formatSalary(amount) {
+            if (amount >= 1000) {
+                return (amount / 1000).toFixed(0) + 'k';
+            }
+            return amount.toLocaleString();
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function getFormData() {
+            const minSalary = parseInt(document.getElementById('job-salary-min').value) || 0;
+            const maxSalary = parseInt(document.getElementById('job-salary-max').value) || 0;
+            
+            return {
+                title: document.getElementById('job-title').value.trim(),
+                company: document.getElementById('job-company').value.trim(),
+                location: document.getElementById('job-location').value.trim(),
+                type: document.getElementById('job-type').value,
+                description: document.getElementById('job-description').value.trim(),
+                skills: document.getElementById('job-skills').value.split(',').map(s => s.trim()).filter(s => s),
+                isRemote: document.getElementById('isRemote').checked,
+                isWeb3: document.getElementById('isWeb3').checked,
+                salary: {
+                    min: minSalary * 1000,
+                    max: maxSalary * 1000,
+                    currency: 'USD'
+                }
+            };
+        }
+
+        async function postStandardJob(e) {
+            e.preventDefault();
+            const token = localStorage.getItem('token');
+            if (!token) {
+                showNotification('You must be signed in to post a job.', 'error');
+                showAuthModal('login');
+                return;
+            }
+
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            
+            try {
+                submitBtn.textContent = 'Posting...';
+                submitBtn.disabled = true;
+
+                const formData = getFormData();
+                
+                // Validation
+                if (!formData.title || !formData.company || !formData.location || !formData.type || !formData.description) {
+                    showNotification('Please fill in all required fields.', 'error');
+                    return;
+                }
+
+                const response = await fetch(`${API_BASE}/jobs`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json', 
+                        'Authorization': `Bearer ${token}` 
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    showNotification('Job posted successfully!', 'success');
+                    document.getElementById('job-form').reset();
+                    loadJobs();
+                    showSection('jobs');
+                } else {
+                    showNotification('Failed to post job: ' + data.message, 'error');
+                }
+            } catch (error) {
+                console.error('Job posting error:', error);
+                showNotification('Network error. Please try again.', 'error');
+            } finally {
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            }
+        }
+
+async function postPremiumJob() {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        showNotification('You must be signed in to post a premium job.', 'error');
+        showAuthModal('login');
+        return;
+    }
+
+    const isMetaMaskAvailable = typeof window.ethereum !== 'undefined';
+    const isPhantomAvailable = typeof window.solana !== 'undefined';
+    
+    if (!isMetaMaskAvailable && !isPhantomAvailable) {
+        showNotification('Please install MetaMask or Phantom wallet to use premium features.', 'error');
+        return;
+    }
+
+    const submitBtn = document.querySelector('.btn-premium');
+    const originalText = submitBtn.innerHTML;
+    
+    try {
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
+        submitBtn.disabled = true;
+
+        const formData = getFormData();
+        
+        // Validation
+        if (!formData.title || !formData.company || !formData.location || !formData.type || !formData.description) {
+            showNotification('Please fill in all required fields.', 'error');
+            return;
+        }
+
+        let txHash;
+        showNotification('Initiating wallet payment...', 'info');
+
+        // --- Handle Ethereum (MetaMask) Payment ---
+        if (isMetaMaskAvailable) {
+            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+            const account = accounts[0];
+            
+            const platformFee = '0x2386F26FC10000'; // 0.01 ETH in Wei
+            const ethereumAdminWallet = '0x742d5Cc6d2aE3Bb3e4a6f1B2A8b3F8E9D0C1B2A3'; // <-- REPLACE WITH YOUR ETHEREUM ADMIN ADDRESS
+
+            const transactionParameters = {
+                to: ethereumAdminWallet, 
+                from: account,
+                value: platformFee,
+            };
+            txHash = await window.ethereum.request({ 
+                method: 'eth_sendTransaction', 
+                params: [transactionParameters] 
+            });
+        
+        // --- Handle Solana (Phantom) Payment ---
+        } else if (isPhantomAvailable) {
+            const solanaAdminWallet = 'YOUR_SOLANA_ADMIN_WALLET_ADDRESS_HERE'; // <-- REPLACE WITH YOUR SOLANA ADMIN ADDRESS
+            if (solanaAdminWallet === 'YOUR_SOLANA_ADMIN_WALLET_ADDRESS_HERE') {
+                showNotification('Solana admin wallet address not configured.', 'error');
+                return;
+            }
+            
+            const { solana } = window;
+            const solanaConnection = new solanaWeb3.Connection(solanaWeb3.clusterApiUrl('devnet')); // Using devnet for testing
+            const lamportsToSend = 10000000; // 0.01 SOL in Lamports
+            
+            const transaction = new solanaWeb3.Transaction().add(
+                solanaWeb3.SystemProgram.transfer({
+                    fromPubkey: solana.publicKey,
+                    toPubkey: new solanaWeb3.PublicKey(solanaAdminWallet),
+                    lamports: lamportsToSend,
+                })
+            );
+            
+            const signedTransaction = await solana.signTransaction(transaction);
+            txHash = await solanaConnection.sendRawTransaction(signedTransaction.serialize());
+        }
+
+        // After successful payment, post the job to the backend
+        showNotification('Payment successful! Posting job...', 'success');
+        
+        const response = await fetch(`${API_BASE}/jobs/premium`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json', 
+                'Authorization': `Bearer ${token}` 
+            },
+            body: JSON.stringify({ ...formData, isPremium: true, txHash })
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+            showNotification('Premium job posted successfully!', 'success');
+            document.getElementById('job-form').reset();
+            loadJobs();
+            showSection('jobs');
+        } else {
+            showNotification('Failed to post premium job: ' + data.message, 'error');
+        }
+    } catch (error) {
+        console.error('Premium job posting error:', error);
+        if (error.code === 4001 || error.message?.includes('User rejected the request')) {
+            showNotification('Transaction cancelled by user.', 'error');
+        } else {
+            showNotification('Web3 payment failed. Please check your wallet and try again.', 'error');
+        }
+    } finally {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    }
+}
+
+        function applyToJob(jobId) {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                showNotification('Please sign in to apply for jobs.', 'error');
+                showAuthModal('login');
+                return;
+            }
+            
+            showNotification('Application submitted successfully!', 'success');
+        }
+
+        // Filter functions
+        function applyFilters() {
+            currentFilters = {
+                location: document.getElementById('filter-location').value.trim(),
+                type: document.getElementById('filter-type').value,
+                isRemote: document.getElementById('filter-remote').checked,
+                isWeb3: document.getElementById('filter-web3').checked
+            };
+            
+            loadJobs();
+            showNotification('Filters applied!', 'success');
+        }
+
+        function clearFilters() {
+            currentFilters = {};
+            document.getElementById('filter-location').value = '';
+            document.getElementById('filter-type').value = '';
+            document.getElementById('filter-remote').checked = false;
+            document.getElementById('filter-web3').checked = false;
+            document.getElementById('main-search').value = '';
+            
+            loadJobs();
+            showNotification('Filters cleared!', 'success');
+        }
+
+        function filterWeb3Jobs() {
+            currentFilters = { isWeb3: true };
+            document.getElementById('filter-web3').checked = true;
+            loadJobs();
+            showNotification('Showing Web3 jobs only!', 'success');
+        }
+
+        // Web3 functionality
+        function initializeWeb3() {
+            const connectWalletBtn = document.getElementById('connect-wallet-btn');
+            
+            if (typeof window.ethereum !== 'undefined') {
+                connectWalletBtn.textContent = 'Connect Wallet';
+                connectWalletBtn.onclick = connectWallet;
+                
+                // Listen for account changes
+                window.ethereum.on('accountsChanged', handleAccountsChanged);
+                window.ethereum.on('chainChanged', () => window.location.reload());
+                
+                // Check if already connected
+                checkWalletConnection();
+            } else {
+                connectWalletBtn.textContent = 'Install MetaMask';
+                connectWalletBtn.onclick = () => {
+                    window.open('https://metamask.io/download/', '_blank');
+                };
+            }
+        }
+
+        async function checkWalletConnection() {
+            try {
+                const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+                if (accounts.length > 0) {
+                    handleAccountsChanged(accounts);
+                }
+            } catch (error) {
+                console.error('Error checking wallet connection:', error);
+            }
+        }
+
+        async function connectWallet() {
+            try {
+                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                handleAccountsChanged(accounts);
+                showNotification('Wallet connected successfully!', 'success');
+            } catch (error) {
+                console.error('Error connecting to MetaMask:', error);
+                if (error.code === 4001) {
+                    showNotification('Please connect to MetaMask.', 'error');
+                } else {
+                    showNotification('Error connecting to MetaMask. Please try again.', 'error');
+                }
+            }
+        }
+
+        function handleAccountsChanged(accounts) {
+            const connectWalletBtn = document.getElementById('connect-wallet-btn');
+            
+            if (accounts.length === 0) {
+                connectWalletBtn.textContent = 'Connect Wallet';
+                connectWalletBtn.classList.remove('web3-connected');
+                connectWalletBtn.onclick = connectWallet;
+            } else {
+                const account = accounts[0];
+                connectWalletBtn.textContent = `${account.substring(0, 6)}...${account.substring(account.length - 4)}`;
+                connectWalletBtn.classList.add('web3-connected');
+                connectWalletBtn.onclick = disconnectWallet;
+                
+                // Save wallet address to profile if user is logged in
+                saveWalletAddressToProfile(account);
+            }
+        }
+
+        async function disconnectWallet() {
+            try {
+                // There's no standard way to disconnect from MetaMask programmatically
+                // We'll just update the UI and ask user to disconnect manually
+                showNotification('Please disconnect from MetaMask manually in the extension.', 'info');
+            } catch (error) {
+                console.error('Error disconnecting wallet:', error);
+            }
+        }
+
+        async function saveWalletAddressToProfile(address) {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/profile`, {
+                    method: 'PUT',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ publicWalletAddress: address })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    console.log('Wallet address saved to profile successfully.');
+                    fetchUserProfile(); // Refresh the profile display
+                }
+            } catch (error) {
+                console.error('Error saving wallet address:', error);
+            }
+        }
+
+        // Utility functions
+        function showNotification(message, type = 'info') {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg max-w-sm transition-all duration-300 transform translate-x-full`;
+            
+            const bgColor = {
+                'success': 'bg-green-500 text-white',
+                'error': 'bg-red-500 text-white',
+                'info': 'bg-blue-500 text-white',
+                'warning': 'bg-yellow-500 text-black'
+            }[type] || 'bg-gray-500 text-white';
+            
+            notification.className += ` ${bgColor}`;
+            notification.innerHTML = `
+                <div class="flex items-center justify-between">
+                    <span>${message}</span>
+                    <button onclick="this.parentElement.parentElement.remove()" class="ml-3 text-lg">&times;</button>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Animate in
+            setTimeout(() => {
+                notification.classList.remove('translate-x-full');
+            }, 100);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                notification.classList.add('translate-x-full');
+                setTimeout(() => notification.remove(), 300);
+            }, 5000);
+        }
+
+        function showError(elementId, message) {
+            const errorElement = document.getElementById(elementId);
+            if (errorElement) {
+                errorElement.textContent = message;
+                errorElement.classList.remove('hidden');
+            }
+        }
+
+        function hideError(elementId) {
+            const errorElement = document.getElementById(elementId);
+            if (errorElement) {
+                errorElement.classList.add('hidden');
+            }
+        }
+
+        // Initialize sample data on page load if no jobs exist
+        setTimeout(() => {
+            // Check if we need to create sample jobs
+            const jobsList = document.getElementById('jobs-list');
+            if (jobsList && jobsList.innerHTML.includes('Loading jobs...')) {
+                loadJobs();
+            }
+        }, 1000);
+    </script>
+</body>
+</html>
